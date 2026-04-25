@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
@@ -21,32 +22,33 @@ public class LoginTest {
         options.addArguments("--disable-dev-shm-usage");
 
         WebDriver driver = new ChromeDriver(options);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            driver.get("http://103.139.122.250/");
 
-            driver.get("http://103.139.122.250:4000/login");
-
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")))
+            driver.findElement(By.name("email"))
                     .sendKeys("qasim@malik.com");
 
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")))
+            driver.findElement(By.name("password"))
                     .sendKeys("abcdefg");
 
-            wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//button[contains(text(),'Login') or contains(text(),'Sign')]")
-            )).click();
+            driver.findElement(By.id("m_login_signin_submit"))
+                    .click();
 
-            WebElement errorElement = wait.until(
+            // IMPORTANT FIX: more stable locator strategy
+            WebElement error = wait.until(
                     ExpectedConditions.visibilityOfElementLocated(
-                            By.xpath("//*[contains(text(),'Incorrect') or contains(text(),'invalid')]")
+                            By.xpath("//*[contains(.,'Incorrect') or contains(.,'invalid')]")
                     )
             );
 
-            String errorText = errorElement.getText();
+            String errorText = error.getText();
 
-            assertTrue(errorText.toLowerCase().contains("incorrect")
-                    || errorText.toLowerCase().contains("invalid"));
+            assertTrue(
+                    errorText.contains("Incorrect") || errorText.contains("invalid"),
+                    "Expected login error message not found!"
+            );
 
         } finally {
             driver.quit();
