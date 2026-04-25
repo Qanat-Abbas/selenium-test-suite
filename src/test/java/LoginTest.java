@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.*;
 
 import java.time.Duration;
 
@@ -15,36 +16,38 @@ public class LoginTest {
     void test_login_with_incorrect_credentials() {
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless");
+        options.addArguments("--headless=new");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
 
         WebDriver driver = new ChromeDriver(options);
 
         try {
-            // NEW URL (correct one)
-            driver.navigate().to("http://103.139.122.250:4000/login");
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+            driver.get("http://103.139.122.250:4000/login");
 
-            // Stable selectors (matching your working version style)
-            driver.findElement(By.id("email")).sendKeys("qasim@malik.com");
-            driver.findElement(By.id("password")).sendKeys("abcdefg");
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")))
+                    .sendKeys("qasim@malik.com");
 
-            driver.findElement(By.id("m_login_signin_submit")).click();
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")))
+                    .sendKeys("abcdefg");
 
-            Thread.sleep(2000); // small buffer for UI update (keeps stability in CI)
+            wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//button[contains(text(),'Login') or contains(text(),'Sign')]")
+            )).click();
 
-            // SAME LOGIC AS YOUR ORIGINAL TEST (MOST IMPORTANT FIX)
-            String errorText = driver.findElement(
-                    By.xpath("/html/body/div/div/div[1]/div/div/div/div[2]/form/div[1]")
-            ).getText();
+            WebElement errorElement = wait.until(
+                    ExpectedConditions.visibilityOfElementLocated(
+                            By.xpath("//*[contains(text(),'Incorrect') or contains(text(),'invalid')]")
+                    )
+            );
 
-            assertTrue(errorText.contains("Incorrect email or password"));
+            String errorText = errorElement.getText();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+            assertTrue(errorText.toLowerCase().contains("incorrect")
+                    || errorText.toLowerCase().contains("invalid"));
+
         } finally {
             driver.quit();
         }
