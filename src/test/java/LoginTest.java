@@ -16,37 +16,46 @@ public class LoginTest {
     void test_login_with_incorrect_credentials() {
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless");
+        options.addArguments("--headless=new");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1920,1080");
 
         WebDriver driver = new ChromeDriver(options);
-
-        driver.get("http://103.139.122.250:4000/login");
-
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")))
-                .sendKeys("qasim@malik.com");
+        try {
+            driver.get("http://103.139.122.250:4000/login");
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")))
-                .sendKeys("wrongpassword");
+            // Email
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")))
+                    .sendKeys("qasim@malik.com");
 
-        wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//button[contains(text(),'Login') or contains(text(),'Sign')]")
-        )).click();
+            // Password
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")))
+                    .sendKeys("wrongpassword");
 
-        WebElement errorElement = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//*[contains(text(),'Incorrect') or contains(text(),'invalid')]")
-                )
-        );
+            // Login button (kept flexible for UI variations)
+            wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//button[contains(.,'Login') or contains(.,'Sign')]")
+            )).click();
 
-        String errorText = errorElement.getText();
+            // Error message
+            WebElement errorElement = wait.until(
+                    ExpectedConditions.visibilityOfElementLocated(
+                            By.xpath("//*[contains(text(),'Incorrect') or contains(text(),'invalid')]")
+                    )
+            );
 
-        assertTrue(errorText.toLowerCase().contains("incorrect") 
-                || errorText.toLowerCase().contains("invalid"));
+            String errorText = errorElement.getText().toLowerCase();
 
-        driver.quit();
+            assertTrue(
+                    errorText.contains("incorrect") || errorText.contains("invalid")
+            );
+
+        } finally {
+            driver.quit();
+        }
     }
 }
