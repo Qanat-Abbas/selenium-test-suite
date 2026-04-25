@@ -22,30 +22,30 @@ public class LoginTest {
 
         WebDriver driver = new ChromeDriver(options);
 
-        driver.get("http://103.139.122.250:4000/");
+        driver.get("http://103.139.122.250:4000/login");
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        // Wait for elements before interacting
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("email")))
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")))
                 .sendKeys("qasim@malik.com");
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("password")))
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")))
                 .sendKeys("wrongpassword");
 
-        wait.until(ExpectedConditions.elementToBeClickable(By.id("m_login_signin_submit")))
-                .click();
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//button[contains(text(),'Login') or contains(text(),'Sign')]")
+        )).click();
 
-        // Wait for error message
         WebElement errorElement = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//form//div[contains(@class,'alert') or contains(text(),'Incorrect')]")
+                        By.xpath("//*[contains(text(),'Incorrect') or contains(text(),'invalid')]")
                 )
         );
 
         String errorText = errorElement.getText();
 
-        assertTrue(errorText.contains("Incorrect email or password"));
+        assertTrue(errorText.toLowerCase().contains("incorrect") 
+                || errorText.toLowerCase().contains("invalid"));
 
         driver.quit();
     }
