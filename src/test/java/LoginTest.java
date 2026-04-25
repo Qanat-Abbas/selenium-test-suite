@@ -28,7 +28,7 @@ public class LoginTest {
             driver.get("http://103.139.122.250/");
 
             driver.findElement(By.name("email"))
-                    .sendKeys("qasimsb@malik.com");
+                    .sendKeys("qasimthegreat@malik.com");
 
             driver.findElement(By.name("password"))
                     .sendKeys("abcdefg");
